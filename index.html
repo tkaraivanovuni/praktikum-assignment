@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stock Exchange API</title>
+
+    <link rel="stylesheet" href="./styles/style.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles/dist/app.css">
+
+  </head>
+  <body style="background-color: rgb(220, 220, 220)">
+
+    <div class="container">
+      
+      <div class="menu-container row align-items-start p-2">
+
+        <div class="col-sm-6 col-lg-4 mt-4 pt-2 flex-column">
+
+          <form>
+
+            <div class="form-group pr-5">
+              <select class="form-control" id="select-company">
+                <option selected disabled value="">Select Company</option>
+                <option value="GOOGL">Alphabet</option>
+                <option value="AMZN">Amazon</option>
+                <option value="AAPL">Apple</option>
+                <option value="FB">Facebook</option>
+                <option value="MSFT">Microsoft</option>
+              </select>
+            </div>
+  
+            <div class="form-group mt-4 flex-column">
+
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" value="open" id="open-at-data" checked>
+                  <label class="custom-control-label" for="open-at-data">Opened at</label>
+                </div>
+
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" value="close" id="close-at-data" checked>
+                  <label class="custom-control-label" for="close-at-data">Closed at</label>
+                </div>
+  
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" value="low" id="lowest-value-data" checked>
+                  <label class="custom-control-label" for="lowest-value-data">Low</label>
+                </div>
+  
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" value="high" id="highest-value-data" checked>
+                  <label class="custom-control-label" for="highest-value-data">High</label>
+                </div>  
+                      
+            </div>
+
+            <div>
+              <button class="btn btn-secondary" type="button" id="unfiltered-search">Search</button>
+            </div>
+
+          </form>
+
+        </div>  
+
+        <div class="col-sm-6 col-lg-4 mt-4 pt-2 flex-column">
+
+          <div class="form-group row">
+            <label for="start-date-input" class="col-2 col-form-label">From: </label>
+            <div class="col-10">
+              <input class="form-control" type="date" value="" id="start-date-input">
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label for="end-date-input" class="col-2 col-form-label">To: </label>
+            <div class="col-10">
+              <input class="form-control" type="date" value="" id="end-date-input">
+            </div>
+          </div>
+
+          <p>
+            In case no dates are selected today's data will be displayed(if available)!
+          </p>
+
+          <div>
+            <button class="btn btn-secondary" type="submit" id="filtered-search">Filter</button>
+          </div>
+              
+        </div>
+
+        <div class="d-none d-lg-flex col-lg-4">
+          <img src="./assets/AppLogo.png" class="img-fluid" alt="Responsive image">
+        </div>
+
+      </div>
+
+      <div class="row mt-2 p-2 align-items-center" style="display: none" id="company-information">
+
+        <div class="col-md-4">
+          <img src="./assets/Apple.jpg" class="img-fluid" alt="Responsive image"  id="company-logo">
+        </div>
+
+        <div class="col-md-4">
+          <h1 id="company-name"> </h1>
+        </div>
+
+        <div>
+          <button type="button" class="btn btn-secondary" id="change-view-button">Grid View</button>
+        </div>
+
+      </div>
+
+      <div class="data-container">
+        <ul class="list-group flex-column flex-wrap justify-content-between" id="search-results-list">                                         
+          
+        </ul>
+      </div>
+
+      <div class="data-template row p-1 m-1 align-items-center" style="display: none" id="to-be-copied">
+
+        <div class="col">
+          <img src="./assets/icon-down.png" alt="level">
+        </div>
+
+        <div class="col justify-content-between">
+          <h5 class="mb-1">Date</h5>
+        </div>
+          
+        <div class="col" id="open-at"><b>Open at: </b></div>
+        <div class="col" id="lowest-value"><b>Low: </b></div>
+        <div class="col" id="highest-value"><b>High: </b></div>
+        <div class="col" id="close-at"><b>Close at: </b></div>
+          
+      </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <script>
+
+      const apiKey = "918b2c78cda7cd9c5ed2836706600ae4";
+      let ticker ="";
+      let currentDate = new Date().toISOString().split("T")[0];
+      let startDate = new Date().toISOString().split("T")[0];
+      let endDate = new Date().toISOString().split("T")[0];
+      let resultView = "list";
+
+      $(document).ready(function(){
+
+        $("#start-date-input").attr("max", currentDate);
+        $("#end-date-input").attr("max", currentDate);
+
+        function displaySearchResult(data){
+          $("#company-information").show();
+          let copied = $("#to-be-copied").clone();
+          copied.attr("id", "");
+          copied.find("h5").text(data.data[i].date.split("T")[0]);
+          copied.find("#open-at").append(data.data[i].open.toFixed(2));
+          if(document.getElementById("open-at-data").checked == false){
+            copied.find("#open-at").attr("style","display: none");
+          }
+          copied.find("#close-at").append(data.data[i].close.toFixed(2));
+          if(document.getElementById("close-at-data").checked == false){
+            copied.find("#close-at").attr("style","display: none");
+          }
+          copied.find("#lowest-value").append(data.data[i].low.toFixed(2));
+          if(document.getElementById("lowest-value-data").checked == false){
+            copied.find("#lowest-value").attr("style","display: none");
+          }
+          copied.find("#highest-value").append(data.data[i].high.toFixed(2));
+          if(document.getElementById("highest-value-data").checked == false){
+            copied.find("#highest-value").attr("style","display: none");
+          }
+          if(data.data[i].open == data.data[i].close) {
+            copied.find("img").attr("src", "./assets/icon-level.png");
+          }else if (data.data[i].open > data.data[i].close){
+            copied.find("img").attr("src", "./assets/icon-down.png");
+          }else
+            copied.find("img").attr("src", "./assets/icon-up.png");
+          $("#search-results-list").append(copied);
+          copied.show();
+        }
+
+        function filterSearchByDate(startDate, endDate){
+          if(ticker != ""){
+            $.ajax({
+              method: "GET",
+              url: "http://api.marketstack.com/v1/eod?access_key=" + apiKey + "&symbols=" + ticker + "&date_from=" + startDate + "&date_to=" + endDate,
+              dataType: "json",
+            }).done(function(data){
+              for(i = 0; i < data.data.length; i++){
+                displaySearchResult(data);
+              }
+            })
+          }else alert("Please select a Company first!");
+        }
+
+        $("#select-company").change(function(){
+          ticker = $("#select-company").val();
+          switch(ticker){
+            case "GOOGL":
+              $("#company-logo").attr("src","./assets/Alphabet.jpg");
+              $("#company-name").text("Alphabet Inc.");
+              break;
+
+            case "AMZN":
+              $("#company-logo").attr("src","./assets/Amazon.png")
+              $("#company-name").text("Amazon.com, Inc.");
+              break;
+
+            case "APPL":
+              $("#company-logo").attr("src","./assets/Apple.jpg");
+              $("#company-name").text("Apple Inc.");
+              break;
+
+            case "FB":
+              $("#company-logo").attr("src","./assets/Facebook.jpg");
+              $("#company-name").text("Facebook, Inc.");
+              break;
+
+            case "MSFT":
+              $("#company-logo").attr("src","./assets/Microsoft.png");
+              $("#company-name").text("Microsoft Corporation");
+              break;
+
+            default:
+
+          }
+        }) 
+
+        $("#unfiltered-search").click(function(){
+          if(ticker != ""){
+            $.ajax({
+            method: "GET",
+            url: "http://api.marketstack.com/v1/eod?access_key=" + apiKey + "&symbols=" + ticker,
+            dataType: "json",
+            }).done(function(data){
+              $("#search-results-list").empty();
+              for(i = 0; i < data.data.length; i++){
+                displaySearchResult(data);
+              }
+            });
+          }else alert("Please select a Company first!");
+        });
+
+        $("#start-date-input").change(function(){
+          $("#end-date-input").attr("min", $("#start-date-input").val());
+          startDate = $("#start-date-input").val();
+        })
+
+        $("#end-date-input").change(function(){
+          $("#start-date-input").attr("max", $("#end-date-input").val());
+          endDate = $("#end-date-input").val()
+        })
+
+        $("#filtered-search").click(function(){
+          $("#search-results-list").empty();
+          filterSearchByDate(startDate, endDate);
+        })
+
+        $("#change-view-button").click(function(){
+          if(resultView == "list") {
+            $("#change-view-button").text("List View");
+            resultView = "grid";
+            $("#search-results-list").removeClass("flex-column");
+            $("#search-results-list").addClass("flex-row");
+            $(".data-template").removeClass("row");
+          }else {
+            $("#change-view-button").text("Grid View");
+            resultView = "list";
+            $("#search-results-list").removeClass("flex-row");
+            $("#search-results-list").addClass("flex-column");
+            $(".data-template").addClass("row");
+          }
+        })
+
+      })
+
+      
+    </script>
+
+  </body>
+</html>
